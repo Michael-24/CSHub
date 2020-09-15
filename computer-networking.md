@@ -233,7 +233,7 @@ SYN洪泛攻击指的是，攻击者发送大量的TCP SYN报文段，却不执�
 
 **TCP状态转换图**
 
-<img src="images/image-20200913115053266.png" alt="image-20200913115053266" style="zoom: 25%;" />
+<img src="images/image-20200913115053266.png" width="500" height="500" />
 
 **TCP客户端的典型状态转换序列**
 
