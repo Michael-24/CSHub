@@ -288,15 +288,7 @@ SYN cookie可以解决这个问题。当SYN报文到达时，服务器先不会�
 
 **TCP状态转换图**
 
-<img src="images/image-20200913115053266.png" width="600" height="600" />
-
-**TCP客户端的典型状态转换序列**
-
-<img src="images/image-20200913155258660.png" alt="image-20200913155258660" width="600" height="500" />
-
-**TCP服务端的典型状态转换序列**
-
-<img src="images/image-20200913155719513.png" alt="image-20200913155719513" width="600" height='500' />
+<img src="images/image-20200913115053266.png" style="zoom:10%;" />
 
 ### TIME_WAIT
 
@@ -345,7 +337,7 @@ TCP接收方会维护一个接收窗口（rwnd），用于表示接收方还有�
 
 TCP发送方维护一个拥塞窗口（cwnd）控制TCP的发送速率。cwnd和rwnd中的较小值就是TCP发送方发送窗口的大小。
 
-<img src="images/image-20200913172347805.png" alt="image-20200913172347805" weight="500" height="500" />
+<img src="images/image-20200913172347805.png" alt="image-20200913172347805" weight="648" height="414" />
 
 * **慢启动**：在慢启动阶段，cwnd的初始值为1，并且每当接收到一个ACK确认报文，cwnd的值就会加1。每经过一个RTT，cwnd的大小都会增加一倍。如果cwnd=ssthresh/2，进入拥塞避免阶段；如果出现超时，进入慢启动阶段；如果出现冗余ACK，进入快速恢复阶段。
 * **拥塞避免**：此时，cwnd=ssthresh/2，如果cwnd还是指数增加，很容易造成网络拥塞。因此，在这个阶段，窗口增长的速度需要放缓。在这个阶段，每过一个RTT，cwnd的大小加1。如果出现超时，进入慢启动状态；如果出现冗余ACK，进入快速恢复状态。这两种情况都要把ssthresh设为cwnd/2。
