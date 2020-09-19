@@ -6,6 +6,8 @@
 
 
 
+
+
 ### 进程的生命周期
 
 **三状态版本**
@@ -28,23 +30,13 @@
 
 
 
-### 进程地址空间
+### 用户模式和内核模式
 
-<img src="/Users/grt/Documents/GitHub/CS-Reviews/images//image-20200918193032889.png" alt="image-20200918193032889" style="zoom:50%;" />
+用户态中的进程不能执行任何特权指令，这些特权指令包括停止处理器、改变模式位、执行I/O操作等。而在内核态中，一个进程可以执行任何指令，并且可以访问系统中任意位置的内存。
 
-进程地址空间分为以下几个部分：
+用户模式和内核模式之间的切换方式：系统调用、中断、陷阱。
 
-* 代码段：存放二进制代码
-* 初始化数据段：存放已经初始化的变量和数据。
-* 未初始化数据段：存放没有初始化的变量和数据。
-* 堆
-* 栈
-
-高位地址空间主要留给内核使用，保存了内核的代码、数据、堆、栈。
-
-### 用户态和内核态
-
-内核为了
+区别用户模式和内核模式的原因在于，操作系统需要提供一种高效可控的进程抽象，需要限制进程可以执行的指令以及可以访问的内存地址范围。
 
 ### 上下文切换
 
@@ -52,13 +44,15 @@
 
 
 
-### Linux进程创建过程
+### Linux进程创建
+
+**fork()和vfork()**
 
 
 
 
 
-### 系统调用
+### 系统调用的实现过程
 
 
 
@@ -99,23 +93,17 @@
 
  
 
+### 进程地址空间
 
+<img src="/Users/grt/Documents/GitHub/CS-Reviews/images//image-20200918193032889.png" alt="image-20200918193032889" style="zoom:50%;" />
 
-### 进程间通信
+进程地址空间分为以下几个部分：
 
-进程间通信有以下五种方式：管道、消息队列、共享内存、信号量、套接字。
-
-每种进程间通信的方式总结见下。
-
-
-
-**管道**
-
-
-
-
-
-
+* 代码段：存放二进制代码
+* 初始化数据段：存放已经初始化的变量和数据。
+* 未初始化数据段：存放没有初始化的变量和数据。
+* 堆
+* 栈
 
 ### 虚拟内存实现机制
 
@@ -236,11 +224,76 @@ malloc通过两个系统调用实现：`brk`和`mmap`
 
 
 
+### 进程间通信
+
+进程间通信有以下五种方式：管道、消息队列、共享内存、信号量、套接字。
+
+**管道**
+
+
+
 
 
 ### 互斥锁的实现
 
 
+
+
+
+### 生产者-消费者问题
+
+**基于互斥量和条件变量**
+
+```C
+void *producer(void *arg) {
+    int i;
+    for (i = 0; i < loops; i++) {
+    	Mutex_lock(&m);            // p1
+    	while (num_full == max)    // p2
+    	    Cond_wait(&empty, &m); // p3
+    	do_fill(i);                // p4
+    	Cond_signal(&fill);        // p5
+    	Mutex_unlock(&m);          // p6
+    }
+
+    // end case: put an end-of-production marker (-1) 
+    // into shared buffer, one per consumer
+    for (i = 0; i < consumers; i++) {
+    	Mutex_lock(&m);
+    	while (num_full == max) 
+    	    Cond_wait(&empty, &m);
+    	do_fill(-1);
+    	Cond_signal(&fill);
+    	Mutex_unlock(&m);
+    }
+
+    return NULL;
+}
+                                                                               
+void *consumer(void *arg) {
+    int tmp = 0;
+    // consumer: keep pulling data out of shared buffer
+    // until you receive a -1 (end-of-production marker)
+    while (tmp != -1) { 
+    	Mutex_lock(&m);           // c1
+    	while (num_full == 0)     // c2 
+    	    Cond_wait(&fill, &m); // c3
+    	tmp = do_get();           // c4
+    	Cond_signal(&empty);      // c5
+    	Mutex_unlock(&m);         // c6
+    }
+    return NULL;
+}
+
+```
+
+关键点：
+
+* 使用**一个互斥锁**保护临界区数据的读写。
+* 使用 `while` 判断条件变量唤醒条件是否满足，防止虚假唤醒。
+* 使用**两个条件变量**，保证生产者只能唤醒消费者，消费者只能唤醒生产者。
+
+**基于信号量**
 
 
 
@@ -272,10 +325,4 @@ malloc通过两个系统调用实现：`brk`和`mmap`
 **死锁检测和恢复**
 
 允许死锁发生，系统定期检查是否存在死锁情况，如果存在死锁就执行恢复程序。这种方法在数据库系统中有应用。
-
-### Linux文件写入
-
-
-
-### 文件系统的实现
 
