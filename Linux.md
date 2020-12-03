@@ -1,18 +1,6 @@
 ## Linux基础
 
-- [Linux基础](#linux--)
-  * [Linux五种I/O模型](#linux--i-o--)
-  * [文件系统的理解（EXT4，XFS，BTRFS）](#--------ext4-xfs-btrfs-)
-  * [文件处理命令（grep,awk,sed）](#-------grep-awk-sed-)
-  * [IO复用的三种方法（select,poll,epoll）深入理解，包括三者区别，内部原理实现？](#io--------select-poll-epoll--------------------)
-  * [Epoll的ET模式和LT模式（ET的非阻塞）](#epoll-et---lt---et-----)
-  * [查询进程占用CPU的命令（注意要了解到used，buf，cache代表意义）](#------cpu----------used-buf-cache-----)
-  * [linux的其他常见命令（kill，find，cp等等）](#linux--------kill-find-cp---)
-  * [shell脚本用法](#shell----)
-  * [硬链接和软链接的区别](#----------)
-  * [文件权限怎么看（rwx）](#--------rwx-)
-  * [Linux监控网络带宽的命令，查看特定进程的占用网络资源情况命令](#linux---------------------------)
-  * [怎么修改一个文件的权限](#-----------)
+
 
 ### Linux五种I/O模型
 
