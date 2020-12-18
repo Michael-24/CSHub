@@ -4,11 +4,11 @@
 
 ### 指针和引用的区别
 
-1. 指针是一种类型，存在自己的地址，可以通过访问这个地址来修改另一个变量；引用仅仅是一个别名，对引用的操作就是对变量的本身进行操作。
-2. 指针可以为空，引用不能为空。
-3. 指针可以是多级的，引用只有一级，不存在引用的引用。
-4. 引用必须初始化，指针可以不用初始化。
-5. 引用不能改变目标，指针可以改变目标。
+* 指针是一种类型，存在自己的地址，可以通过访问这个地址来修改另一个变量；引用仅仅是一个别名，对引用的操作就是对变量的本身进行操作。
+* 指针可以为空，引用不能为空。
+* 指针可以是多级的，引用只有一级，不存在引用的引用。
+* 引用必须初始化，指针可以不用初始化。
+* 引用不能改变目标，指针可以改变目标。
 
 ### 堆和栈的区别
 
@@ -78,7 +78,7 @@ const常量具有类型，编译器可以进行安全检查；#define宏定义�
 ### C++中const的用法
 
 * 修饰变量，说明变量是不可变的。
-* 修饰指针：如果
+* 修饰指针：
 
 ### C++中static的用法
 
@@ -88,6 +88,8 @@ const常量具有类型，编译器可以进行安全检查；#define宏定义�
 * 修饰成员函数，修饰成员函数使得不需要生成对象就可以访问该函数，但是在 static 函数内不能访问非静态成员。
 
 静态成员函数要访问非静态成员时，要用过对象来引用。局部静态变量在函数调用结束后也不会被回收，会一直在程序内存中，直到该函数再次被调用，它的值还是保持上一次调用结束后的值。
+
+无论是全局静态变量还是局部静态变量，只要是初始化了的就在.data区，未初始化的就在.bss区。
 
 ### C++中的const类成员函数（用法和意义），以及和非const成员函数的区别
 
@@ -215,9 +217,11 @@ vector遍历效率要比list高，因为vector是一块连续的内存空间，�
 * 一级配置器：一级配置器是对malloc/free函数的封装，allocate()调用malloc函数，deallocate()调用free函数。
 * 二级配置器：如果内存的需求大于128bytes，那么使用第一级配置器；额外维护了16个自由链表，负责16种小型区块的配置能力。这个内存池由malloc分配得来。如果内存不足，转而使用第一级配置器配置足够的空间给第二级配置器，然后再次尝试内存的分配过程。
 
-如何执行空闲内存的回收？
+如果使用二级配置器分配内存，并且面临内存不够的场景，此时需要向内存池申请新的内存。内存池有以下几种申请结果：
 
-
+* 完全满足申请需求。直接返回分配内存的首地址即可。
+* 部分满足申请需求。不能满足全部申请的内存大小，但是可以满足一块以上的内存需求。直接返回分配内存的首地址即可，修改申请内存大小的参数，告知真正的申请数量。
+* 完全无法满足申请需求。此时使用malloc申请一块新的内存，如果malloc也不能满足要求，就从空闲链表中查找是否存在剩余的空闲块可以满足需求，如果有就释放给内存池。内存池获得一些新的内存后配置器重新调用内存分配函数。
 
 ### 面向对象的三大特性
 
@@ -304,7 +308,9 @@ top_offset存储在虚函数表中，一般位于虚表的第一个slot中。
 
 ### this指针
 
+this指针用于类内部，再类的非静态成员函数中访问非静态成员时，编译器自动将this指针传递为一个参数，对各成员的访问通过this函数进行。
 
+this指针总是指向当前对象，因此this是一个常量指针`ClassName *const `，不允许应用程序改变this指针保存的地址。
 
 ### 析构函数一般写成虚函数的原因
 
@@ -346,13 +352,20 @@ top_offset存储在虚函数表中，一般位于虚表的第一个slot中。
 
 纯虚函数更加类似于接口的概念，提供了一种统一的接口，具体的实现交给虚基类的子类实现。
 
-### 静态类型和动态类型，静态绑定和动态绑定的介绍
+### 静态类型和动态类型，静态绑定和动态绑定的介绍（待查）
 
+- 静态类型：对象在声明时采用的类型，在编译期既已确定。
+- 动态类型：通常是指一个指针或引用目前所指对象的类型，是在运行期决定的。
+- 静态绑定：绑定的是静态类型，所对应的函数或属性依赖于对象的静态类型，发生在编译期。
+- 动态绑定：绑定的是动态类型，所对应的函数或属性依赖于对象的动态类型，发生在运行期。
 
+可见，非虚函数一般都是静态绑定，虚函数一般都是动态绑定。
 
-### 引用是否能实现动态绑定，为什么引用可以实现
+#### 引用是否能实现动态绑定，为什么引用可以实现
 
+![截屏2020-12-09 下午8.21.05](images/截屏2020-12-09 下午8.21.05.png)
 
+引用和指针都能实现动态多态，方法都是使用虚函数表找到对应的虚函数指针，调用对应的虚函数。
 
 ### 深拷贝和浅拷贝的区别（举例说明深拷贝的安全性）
 
@@ -361,10 +374,6 @@ top_offset存储在虚函数表中，一般位于虚表的第一个slot中。
 深拷贝开辟了一块新的内存，把原来指针指向的底层数据拷贝到新开辟的内存空间中。
 
 深拷贝可以避免写冲突，一个对象的写不会被另一个对象看到。并且，可以避免重复释放，没个对象指针指向的底层数据是唯一的。
-
-### 对象复用的了解，零拷贝的了解
-
-
 
 ### 介绍C++所有的构造函数
 
@@ -400,12 +409,23 @@ top_offset存储在虚函数表中，一般位于虚表的第一个slot中。
 
 ### 智能指针的类型
 
-智能指针一共有四种类型：
+智能指针一共有四种类型：unique_ptr、shared_ptr、weak_ptr、auto_ptr。
 
-* unique_ptr
-* shared_ptr
-* weak_ptr
-* auto_ptr
+#### unique_ptr
+
+独占指针。
+
+#### shared_ptr
+
+共享指针。
+
+#### weak_ptr
+
+
+
+#### auto_ptr
+
+C++98的标准，现在已经废弃不用。
 
 ### 智能指针的循环引用
 
@@ -451,21 +471,43 @@ gdb [可执行文件名称] [core文件名称]
 
 ### C++的调用惯例（简单一点C++函数调用的压栈过程）
 
-
+* 参数传递：从右往左的顺序将参数压入栈中。
+* 出栈方：函数调用者。
+* 返回值：放在%eax中。
 
 ### C++的四种强制转换
 
-* static_cast：
+#### static_cast
 
-* dynamic_cast：用于父类指针和子类指针之间，父类引用和子类引用之间的类型转换。若目标指针并非父类的子类，则会返回空，它是通过运行时类型推断实现的。
+任何具有明确定义的类型转换，只要不涉及到底层const，都可以说使用static_cast转换。
 
-* const_cast：用于
+* 可以把一个较大的算术类型付给一个较小的算术类型。
+* 编译器不执行警告。
+* 可以在整个类层次结构中移动指针，子类转化为父类安全（向上转换），父类转化为子类不安全（因为子类可能有不在父类的字段或方法）。
 
-* reinterpret_cast：和C
+#### dynamic_cast
+
+用于父类指针和子类指针之间，父类引用和子类引用之间的类型转换。执行运行时类型检查。
+
+如果目标类型和原类型不再同一个继承关系中，转换失败。如果是指针类型，转换失败返回0，如果是引用类型，抛出出bad_cast异常。
+
+#### const_cast
+
+用于删除 变量的const、volatile 和 __unaligned 特性。
+
+#### reinterpret_cast
+
+用于运算对象位模式的简单重新解释。
+
+* 使用非常危险，编译器不会因为类型改变给出任何警告信息。
+* 允许指针类型之间的相互转换，指针与证书类型之间的相互转换。
 
 ### C++中将临时变量作为返回值的时候的处理过程（栈上的内存分配、拷贝过程）
 
-
+* 函数调用方在栈上开辟一块空间作为临时变量。
+* 将临时变量的地址作为隐藏参数传入函数中。
+* 函数将返回值拷贝到临时对象中，将临时对象的地址放在%eax中。
+* 函数调用方根据地址，把临时对象拷贝到真正的返回值中。
 
 ### C++的异常处理
 
@@ -487,7 +529,7 @@ volatile关键字声明的变量，每次访问时都必须从内存中取出值
 
 ### inline和宏定义的区别
 
-
+inline表示内联展开，这是一个提供了编译器的声明，编译器并不一定会执行内联展开。如果编译器接受了内联展开的要求，在执行inline函数时候，如果
 
 ### C++和C的类型安全
 
@@ -501,4 +543,178 @@ volatile关键字声明的变量，每次访问时都必须从内存中取出值
 * 编译：生成汇编语言程序。
 * 汇编：根据汇编语言程序生成可重定位目标文件。
 * 链接：把目标文件链接起来生成可执行目标文件。
+
+### 手写一个String类
+
+https://github.com/chenshuo/recipes/blob/master/string/StringTrivial.h
+
+```c++
+#pragma once
+
+#include <utility>
+#include <assert.h>
+#include <string.h>
+
+namespace trivial
+{
+
+// A trivial String class that designed for write-on-paper in an interview
+class String
+{
+ public:
+  String()
+    : data_(new char[1])
+  {
+    *data_ = '\0';
+  }
+
+  String(const char* str)
+    : data_(new char[strlen(str) + 1])
+  {
+    strcpy(data_, str);
+  }
+
+  String(const String& rhs)
+    : data_(new char[rhs.size() + 1])
+  {
+    strcpy(data_, rhs.c_str());
+  }
+  /* Implement copy-ctor with delegating constructor in C++11
+  String(const String& rhs)
+    : String(rhs.data_)
+  {
+  }
+  */
+
+  ~String() noexcept
+  {
+    delete[] data_;
+  }
+
+  /* Traditional:
+  String& operator=(const String& rhs)
+  {
+    String tmp(rhs);
+    swap(tmp);
+    return *this;
+  }
+  */
+  // In C++11, this is unifying assignment operator
+  String& operator=(String rhs) // yes, pass-by-value
+  {
+    // http://en.wikibooks.org/wiki/More_C++_Idioms/Copy-and-swap
+    swap(rhs);
+    return *this;
+  }
+
+  // C++11 move-ctor
+  String(String&& rhs) noexcept
+    : data_(rhs.data_)
+  {
+    rhs.data_ = nullptr;
+  }
+
+  /* Not needed if we have pass-by-value operator=() above,
+   * and it conflits. http://stackoverflow.com/questions/17961719/
+  String& operator=(String&& rhs)
+  {
+    swap(rhs);
+    return *this;
+  }
+  */
+
+  // Accessors
+
+  size_t size() const
+  {
+    return strlen(data_);
+  }
+
+  const char* c_str() const
+  {
+    return data_;
+  }
+
+  void swap(String& rhs)
+  {
+    std::swap(data_, rhs.data_);
+  }
+
+ private:
+  char* data_;
+};
+
+}
+
+namespace trivial2
+{
+
+// string in C++11 with a length member
+class String
+{
+ public:
+  String() noexcept
+    : data_(nullptr), len_(0)
+  { }
+
+  ~String()
+  {
+    delete[] data_;
+  }
+
+  // only read str when len > 0
+  String(const char* str, size_t len)
+    : data_(len > 0 ? new char[len+1] : nullptr), len_(len)
+  {
+    if (len_ > 0)
+    {
+      memcpy(data_, str, len_);
+      data_[len_] = '\0';
+    }
+    else
+    {
+      assert(data_ == nullptr);
+    }
+  }
+
+  String(const char* str)
+    : String(str, strlen(str))
+  { }
+
+  String(const String& rhs)
+    : String(rhs.data_, rhs.len_)
+  { }
+
+  String(String&& rhs) noexcept
+    : data_(rhs.data_), len_(rhs.len_)
+  {
+    rhs.len_ = 0;
+    rhs.data_ = nullptr;
+  }
+
+  String& operator=(String rhs)
+  {
+    swap(rhs);
+    return *this;
+  }
+
+  void swap(String& rhs) noexcept
+  {
+    std::swap(len_, rhs.len_);
+    std::swap(data_, rhs.data_);
+  }
+
+  // const char* data() const { return c_str(); }
+  const char* c_str() const noexcept { return data_ ? data_ : kEmpty; }
+  size_t size() const noexcept { return len_; }
+
+ private:
+  char* data_;
+  size_t len_;
+  static const char kEmpty[];
+};
+
+// const char String::kEmpty[] = "";
+}
+```
 

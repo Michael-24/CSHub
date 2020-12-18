@@ -6,7 +6,22 @@
 
 #### 饿汉模式
 
-
+```C++
+template <typename T> 
+class Singleton {  
+private:   
+    static T* m_instance = new Singleton();  
+	Singleton() {}
+	~Singleton() {}
+public:  
+    Singleton(const Singleton&)=delete;  
+    Singleton& operator=(const Singleton&)=delete;  
+    T& Instance()   
+    {  
+        return *m_instance;  
+    }  
+}; 
+```
 
 #### 懒汉模式
 
