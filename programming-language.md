@@ -64,8 +64,9 @@ new和malloc的不同之处有以下几点：
 
 ### struct和class的区别
 
-1. struct默认成员访问权限是public，class默认成员访问权限是private。
-2. struct的继承默认是public继承，class的继承默认是private继承。
+* struct默认成员访问权限是public，class默认成员访问权限是private。
+
+* struct的继承默认是public继承，class的继承默认是private继承。
 
 ### define和const的区别（编译阶段、安全性、内存占用等）
 
@@ -77,8 +78,8 @@ const常量具有类型，编译器可以进行安全检查；#define宏定义�
 
 ### C++中const的用法
 
-* 修饰变量，说明变量是不可变的。
-* 修饰指针：
+* 修饰变量：表明这个变量是不可变得。
+* 
 
 ### C++中static的用法
 
@@ -266,6 +267,8 @@ p = this + top_offset // p = this - 8
 call echo(p)
 ```
 
+thunk在实际中一般采用虚函数实现。
+
 top_offset存储在虚函数表中，一般位于虚表的第一个slot中。
 
 #### 为什么基类指针指向派生类对象时可以调用派生类成员函数
@@ -407,35 +410,17 @@ this指针总是指向当前对象，因此this是一个常量指针`ClassName *
 * 采用RAII类或者智能指针管理动态内存的分配与释放。
 * 将基类的析构函数设置为虚函数。
 
-### 智能指针的类型
+### 智能指针
 
 智能指针一共有四种类型：unique_ptr、shared_ptr、weak_ptr、auto_ptr。
 
-#### unique_ptr
-
-独占指针。
-
-#### shared_ptr
-
-共享指针。
-
-#### weak_ptr
 
 
-
-#### auto_ptr
-
-C++98的标准，现在已经废弃不用。
-
-### 智能指针的循环引用
+#### 智能指针的循环引用
 
 如果两个对象分别持有指向对方的shard_ptr，会阻止这两个对象的析构，即使其他的数据结构已经不能访问这两个对象了，他们的引用计数仍然为1。这就发生了内存泄漏事件，这两个对象已经没有用了，但是程序无法回收内存空间。
 
 解决方法是使用weak_ptr，它指向一个对象，但是不增加对象的引用计数。weak_ptr可以跟踪指针何时空悬。判断指向的对象是否已经析构。
-
-### 手写智能指针的实现（shared_ptr和weak_ptr实现的区别）
-
-
 
 ### 遇到coredump要怎么调试
 
@@ -543,178 +528,3 @@ inline表示内联展开，这是一个提供了编译器的声明，编译器�
 * 编译：生成汇编语言程序。
 * 汇编：根据汇编语言程序生成可重定位目标文件。
 * 链接：把目标文件链接起来生成可执行目标文件。
-
-### 手写一个String类
-
-https://github.com/chenshuo/recipes/blob/master/string/StringTrivial.h
-
-```c++
-#pragma once
-
-#include <utility>
-#include <assert.h>
-#include <string.h>
-
-namespace trivial
-{
-
-// A trivial String class that designed for write-on-paper in an interview
-class String
-{
- public:
-  String()
-    : data_(new char[1])
-  {
-    *data_ = '\0';
-  }
-
-  String(const char* str)
-    : data_(new char[strlen(str) + 1])
-  {
-    strcpy(data_, str);
-  }
-
-  String(const String& rhs)
-    : data_(new char[rhs.size() + 1])
-  {
-    strcpy(data_, rhs.c_str());
-  }
-  /* Implement copy-ctor with delegating constructor in C++11
-  String(const String& rhs)
-    : String(rhs.data_)
-  {
-  }
-  */
-
-  ~String() noexcept
-  {
-    delete[] data_;
-  }
-
-  /* Traditional:
-  String& operator=(const String& rhs)
-  {
-    String tmp(rhs);
-    swap(tmp);
-    return *this;
-  }
-  */
-  // In C++11, this is unifying assignment operator
-  String& operator=(String rhs) // yes, pass-by-value
-  {
-    // http://en.wikibooks.org/wiki/More_C++_Idioms/Copy-and-swap
-    swap(rhs);
-    return *this;
-  }
-
-  // C++11 move-ctor
-  String(String&& rhs) noexcept
-    : data_(rhs.data_)
-  {
-    rhs.data_ = nullptr;
-  }
-
-  /* Not needed if we have pass-by-value operator=() above,
-   * and it conflits. http://stackoverflow.com/questions/17961719/
-  String& operator=(String&& rhs)
-  {
-    swap(rhs);
-    return *this;
-  }
-  */
-
-  // Accessors
-
-  size_t size() const
-  {
-    return strlen(data_);
-  }
-
-  const char* c_str() const
-  {
-    return data_;
-  }
-
-  void swap(String& rhs)
-  {
-    std::swap(data_, rhs.data_);
-  }
-
- private:
-  char* data_;
-};
-
-}
-
-namespace trivial2
-{
-
-// string in C++11 with a length member
-class String
-{
- public:
-  String() noexcept
-    : data_(nullptr), len_(0)
-  { }
-
-  ~String()
-  {
-    delete[] data_;
-  }
-
-  // only read str when len > 0
-  String(const char* str, size_t len)
-    : data_(len > 0 ? new char[len+1] : nullptr), len_(len)
-  {
-    if (len_ > 0)
-    {
-      memcpy(data_, str, len_);
-      data_[len_] = '\0';
-    }
-    else
-    {
-      assert(data_ == nullptr);
-    }
-  }
-
-  String(const char* str)
-    : String(str, strlen(str))
-  { }
-
-  String(const String& rhs)
-    : String(rhs.data_, rhs.len_)
-  { }
-
-  String(String&& rhs) noexcept
-    : data_(rhs.data_), len_(rhs.len_)
-  {
-    rhs.len_ = 0;
-    rhs.data_ = nullptr;
-  }
-
-  String& operator=(String rhs)
-  {
-    swap(rhs);
-    return *this;
-  }
-
-  void swap(String& rhs) noexcept
-  {
-    std::swap(len_, rhs.len_);
-    std::swap(data_, rhs.data_);
-  }
-
-  // const char* data() const { return c_str(); }
-  const char* c_str() const noexcept { return data_ ? data_ : kEmpty; }
-  size_t size() const noexcept { return len_; }
-
- private:
-  char* data_;
-  size_t len_;
-  static const char kEmpty[];
-};
-
-// const char String::kEmpty[] = "";
-}
-```
-
